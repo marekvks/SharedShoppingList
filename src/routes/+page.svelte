@@ -1,49 +1,92 @@
 <script lang="ts">
     import { pocketbase } from '$lib/pocketbase';
-    import { scale, fade } from 'svelte/transition'
+    import { scale } from 'svelte/transition'
+    import { flip } from 'svelte/animate'
+	import { IsTodoContentValid } from '$lib/validation';
+	import { onMount } from 'svelte';
 
-    let inputContent: String = "";
+    let inputContent: string = "";
+    const user = "marekvks";
+    const pageId = 1;
 
-    let todos: Todo[] = [ {
-        content: "example",
-        createdBy: "marekvks",
-        visible: true
-    }, {
-        content: "amongus",
-        createdBy: "marekvks",
-        visible: true
-    } ];
+    let todos: Todo[] = [];
 
     interface Todo {
-        content: String,
-        createdBy: String,
-        visible: Boolean
+        content: string,
+        creator: string,
+        page_id: number,
+        id: string
     }
 
-    function addTodo(todo: Todo) {
-        todos = [...todos, todo]
+    interface SendData {
+        content: string,
+        creator: string,
+        page_id: number
     }
 
-    function removeTodo(todo: Todo) {
+    onMount(async () => getTodos());
+
+    async function addTodo(data: SendData) {
+        if (!IsTodoContentValid(data.content)) {
+            alert("Invalid content!");
+            return;
+        }
+
+        const record = await pocketbase.collection('todos').create(data);
+        const todo: Todo = {
+            content: data.content,
+            creator: data.creator,
+            page_id: data.page_id,
+            id: record.id
+        }
+        console.log(todo.id);
+        todos = [...todos, todo];
+        resetInputField();
+    }
+
+    function resetInputField() {
+        inputContent = "";
+    }
+
+    async function removeTodo(todo: Todo) {
+        await pocketbase.collection('todos').delete(todo.id);
         todos.splice(todos.indexOf(todo), 1);
         todos = todos;
+    }
+
+    async function getTodos() {
+        const record = await pocketbase.collection('todos').getFullList( {
+            filter: `done = false && page_id = ${pageId}`
+        } );
+        record.forEach((record) => {
+            const todo: Todo = {
+                content: record.content,
+                creator: record.creator,
+                page_id: record.page_id,
+                id: record.id
+            }
+            todos = [...todos, todo];
+        })
     }
 </script>
 
 <h1>TODO</h1>
-<form on:submit|preventDefault={() => addTodo( { content: inputContent, createdBy: "marekvks", visible: true } )}>
+<form on:submit|preventDefault={() => addTodo({ content: inputContent, creator: user, page_id: pageId })}>
     <input type="text" placeholder="New todo" bind:value={inputContent}>
     <button type="submit">Add</button>
 </form>
 <section class="todo-section">
-    {#each todos as todo}
-            <article transition:scale={{ opacity: 0, start: 0.5 }} class="todo">
-                <div class="text-box">
-                    <p class="todo-content">{todo.content}</p>
-                    <p class="todo-creator">added by {todo.createdBy}</p>
-                </div>
-                <button class="remove-btn" on:click={() => removeTodo(todo)}></button>
-            </article>
+    {#each todos as todo (todo)}
+        <article
+            animate:flip in:scale={{ opacity: 0, start: 0.5 }} out:scale={{ opacity: 0, start: 0.5 }}
+            class="todo"
+        >
+            <div class="text-box">
+                <p class="todo-content">{todo.content}</p>
+                <p class="todo-creator">added by {todo.creator}</p>
+            </div>
+            <button class="remove-btn" on:click={() => removeTodo(todo) }></button>
+        </article>
     {/each}
 </section>
 
@@ -58,6 +101,7 @@
         gap: 10px;
 
         .todo {
+            position: relative;
             display: flex;
             align-items: center;
             justify-content: space-between;
