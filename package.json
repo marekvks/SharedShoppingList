@@ -25,6 +25,7 @@
 	"type": "module",
 	"dependencies": {
 		"pocketbase": "^0.14.4",
-		"sass": "^1.62.1"
+		"sass": "^1.62.1",
+		"svelte-french-toast": "^1.0.4-beta.0"
 	}
 }
