@@ -3,6 +3,7 @@ const usernameRegex: RegExp = /^[a-zA-Z\d+-\_\.\ ]{1,32}$/;
 const passwordRegex: RegExp = /^[a-zA-Z\d+-\_\.*]{8,64}$/;
 const emailRegex: RegExp = /^[a-z\d][a-z\d+-\_\.]*[a-z\d]@[a-z\d]{2,20}(\.[a-z\d]{2,20})?\.[a-z\d]{2,20}$/;
 const specialCharsRegex: RegExp = /^[+-_\.]^[/d]$/;
+const idRegex: RegExp = /^[a-zA-Z\d]+$/
 
 export function IsTodoContentValid(todoContent: string): Boolean {
     todoContent.trim();
@@ -38,4 +39,8 @@ export function IsUsernameValid(username: string): Boolean {
 
 export function IsPasswordValid(password: string): Boolean {
     return passwordRegex.test(password);
+}
+
+export function IsIdValid(tag: string) {
+    return idRegex.test(tag);
 }
