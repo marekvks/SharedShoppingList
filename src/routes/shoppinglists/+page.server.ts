@@ -1,7 +1,6 @@
-import type { Record } from 'pocketbase'
 import { error } from '@sveltejs/kit';
-import { goto } from '$app/navigation';
 import { pocketbase } from '$lib/pocketbase.js';
+import { getAuthors } from '$lib/server/functions.js';
 
 /** @type {import('./$types').RequestHandler} */
 export async function load({ locals }) {
@@ -14,23 +13,12 @@ export async function load({ locals }) {
         filter: `authors ~ '${currentUserId}'`
     });
 
-    async function getAuthors(ids: string[]) {
-        pocketbase.autoCancellation(false);
-        const authorsUsernames = [];
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const author =  await pocketbase.collection('users').getOne(id);
-            authorsUsernames.push(author.username);
-        }
-        pocketbase.autoCancellation(true);
-        return authorsUsernames;
-    }
-
     const pages = shoppingListPages.map((page) => {
         const authors = getAuthors(page.authors);
         return {
-            title: page.title,
-            authors: authors
+            "title": page.title,
+            "authors": authors,
+            "id": page.id
         }
     })
 
