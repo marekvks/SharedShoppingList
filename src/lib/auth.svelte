@@ -1,5 +1,7 @@
 <script lang="ts">
+	import { goto } from "$app/navigation";
     import { pocketbase } from "$lib/pocketbase";
+	import { onMount } from "svelte";
     import { IsUsernameValid, IsEmailValid, IsPasswordValid } from "./validation";
     import toast, { Toaster } from 'svelte-french-toast'
 
@@ -42,6 +44,19 @@
         return true;
     }
 
+    onMount(() => {
+        isLoggedIn();
+    });
+
+    async function isLoggedIn() {
+        const response = await fetch('/api/auth/login', {
+            method: 'GET',
+        });
+        if (!response.ok) return;
+        const userId = await response.json();
+        goto(`/user/${userId}`);
+    }
+
     async function signUp(username: string, email: string, password: string, passwordConfirm: string) {
         if (!validate(username, email, password, passwordConfirm, true)) return;
         const data = {
@@ -50,122 +65,113 @@
             password,
             passwordConfirm
         }
-        const response = await fetch('/register', {
+        const response = await fetch('/api/auth/register', {
             method: 'POST',
             body: JSON.stringify({ username, email, password, passwordConfirm }),
             headers: {
                 'Content-Type': 'application/json'
             }
-        })
+        });
         console.log('register ' + response.statusText);
         signIn(email, password);
     }
 
     async function signIn(email: string, password: string) {
         if (!validate('', email, password, '', false)) return;
-        const response = await fetch('/login', {
+        const response = await fetch('/api/auth/login', {
             method: 'POST',
             body: JSON.stringify({ email, password }),
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-        console.log('login ' + response.statusText);
-    }
 
-    const signOut = async function() {
-        const response = await fetch('/logout', {
-            method: 'POST',
-        });
-        pocketbase.authStore.clear();
+        if (response.ok) isLoggedIn();
     }
 </script>
 
 <Toaster />
-<button
-    on:click={signOut}
->
-    Logout
-</button>
-{#if register}
-    <form
-        on:submit|preventDefault={() => signUp(usernameInput.value, emailInput.value, passwordInput.value, passwordConfirmInput.value)}
-        class="auth"
-    >
-        <h2 class="title">Register</h2>
-        <p class="input-title">username</p>
-        <input
-            type="text"
-            name="username"
-            placeholder="username"
-            required
-            on:keyup={() => validateStyle(usernameInput, IsUsernameValid)}
-            bind:this={usernameInput}
+<section class="body">
+    {#if register}
+        <form
+            on:submit|preventDefault={() => signUp(usernameInput.value, emailInput.value, passwordInput.value, passwordConfirmInput.value)}
+            class="auth"
+        >
+            <h2 class="title">Register</h2>
+            <p class="input-title">username</p>
+            <input
+                type="text"
+                name="username"
+                placeholder="username"
+                required
+                on:keyup={() => validateStyle(usernameInput, IsUsernameValid)}
+                bind:this={usernameInput}
+                />
+            <p class="input-title">email</p>
+            <input
+                type="text"
+                name="email"
+                placeholder="email"
+                required
+                on:keyup={() => validateStyle(emailInput, IsEmailValid)}
+                bind:this={emailInput}
             />
-        <p class="input-title">email</p>
-        <input
-            type="text"
-            name="email"
-            placeholder="email"
-            required
-            on:keyup={() => validateStyle(emailInput, IsEmailValid)}
-            bind:this={emailInput}
-        />
-        <p class="input-title">password</p>
-        <input
-            type="password"
-            name="password"
-            placeholder="password"
-            required
-            on:keyup={() => validateStyle(passwordInput, IsPasswordValid)}
-            bind:this={passwordInput}
-        />
-        <p class="input-title">confirm password</p>
-        <input
-            type="password"
-            name="password confirm"
-            placeholder="confirm password"
-            required
-            bind:this={passwordConfirmInput}
-        />
-        <a href="/login" class="forgot-password">Already have an account? Log-in!</a>
-        <button type="submit" class="submit-btn">Submit</button>
-    </form>
-{:else}
-    <form
-        on:submit|preventDefault={() => signIn(emailInput.value, passwordInput.value)}
-        class="auth"
-    >
-        <h2 class="title">Login</h2>
-        <p class="input-title">email</p>
-        <input
-            type="text"
-            name="email"
-            placeholder="email"
-            required
-            on:keyup={() => validateStyle(emailInput, IsEmailValid)}
-            bind:this={emailInput}
-        />
-        <p class="input-title">password</p>
-        <input
-            type="password"
-            name="password"
-            placeholder="password"
-            required
-            on:keyup={() => validateStyle(passwordInput, IsPasswordValid)}
-            bind:this={passwordInput}
-        />
-        <a href="/register" class="forgot-password">Don't have an account? Skill issue!</a>
-        <a href="/forgor-password" class="forgot-password">Forgor💀 password?</a>
-        <button type="submit" class="submit-btn">Submit</button>
-    </form>
-{/if}
+            <p class="input-title">password</p>
+            <input
+                type="password"
+                name="password"
+                placeholder="password"
+                required
+                on:keyup={() => validateStyle(passwordInput, IsPasswordValid)}
+                bind:this={passwordInput}
+            />
+            <p class="input-title">confirm password</p>
+            <input
+                type="password"
+                name="password confirm"
+                placeholder="confirm password"
+                required
+                bind:this={passwordConfirmInput}
+            />
+            <a href="/login" class="forgot-password">Already have an account? Log-in!</a>
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    {:else}
+        <form
+            on:submit|preventDefault={() => signIn(emailInput.value, passwordInput.value)}
+            class="auth"
+        >
+            <h2 class="title">Login</h2>
+            <p class="input-title">email</p>
+            <input
+                type="text"
+                name="email"
+                placeholder="email"
+                required
+                on:keyup={() => validateStyle(emailInput, IsEmailValid)}
+                bind:this={emailInput}
+            />
+            <p class="input-title">password</p>
+            <input
+                type="password"
+                name="password"
+                placeholder="password"
+                required
+                on:keyup={() => validateStyle(passwordInput, IsPasswordValid)}
+                bind:this={passwordInput}
+            />
+            <a href="/register" class="forgot-password">Don't have an account? Skill issue!</a>
+            <a href="/forgor-password" class="forgot-password">Forgor💀 password?</a>
+            <button type="submit" class="submit-btn">Submit</button>
+        </form>
+    {/if}
+</section>
 
 <style lang="scss">
-    @import '../scss/utils.scss';
-    @import '../scss/variables.scss';
+    @import '$lib/scss/utils.scss';
+    @import '$lib/scss/variables.scss';
 
-    :global(body) {
+    .body {
         margin: 0;
         padding: 0;
         height: 100vh;
