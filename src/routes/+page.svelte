@@ -91,8 +91,8 @@
 </section>
 
 <style lang="scss">
-    @import '../scss/utils.scss';
-    @import '../scss/variables.scss';
+    @import '$lib/scss/utils.scss';
+    @import '$lib/scss/variables.scss';
 
     .todo-section {
         display: flex;
