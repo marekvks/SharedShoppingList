@@ -7,7 +7,7 @@ export async function POST({ request, locals }) {
     return new Response('OK');
 }
 
-export async function GET({ request, locals }) {
+export async function GET({ locals }) {
     const currentUser = locals.pb.authStore.model;
     if (!currentUser) return new Response('Not logged in', { "status": 404 });
     const json = JSON.stringify(currentUser.id);

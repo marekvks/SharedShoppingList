@@ -74,6 +74,7 @@
         });
         console.log('register ' + response.statusText);
         signIn(email, password);
+        // if (!response.ok) // Toast error
     }
 
     async function signIn(email: string, password: string) {
@@ -87,6 +88,7 @@
         });
 
         if (response.ok) isLoggedIn();
+        // else // Toast error
     }
 </script>
 
