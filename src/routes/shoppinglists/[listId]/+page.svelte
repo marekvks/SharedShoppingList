@@ -21,8 +21,6 @@
     let todos: Todo[];
 
     onMount(async () => {
-        /*if (data.todos == undefined) todos = [];
-        else todos = await data.todos;*/
         const loadedTodos = await pocketbase.collection('todos').getFullList({
             filter: `page = '${data.pageId}'`
         });
