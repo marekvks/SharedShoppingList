@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-    import Navbar from '$lib/navbar.svelte';
 
     export let data;
 
@@ -22,7 +21,6 @@
     }
 </script>
 
-<Navbar />
 <section class="body">
     <section class="links">
         {#each data.pages as page}

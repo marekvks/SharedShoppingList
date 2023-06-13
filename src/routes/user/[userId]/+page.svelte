@@ -1,12 +1,10 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
     import { toast, Toaster } from 'svelte-french-toast';
-    import Navbar from '$lib/navbar.svelte';
 
     export let data;
 </script>
 
-<Navbar />
 <Toaster />
 <section class="user-section">
     <h1>You're logged in as <strong>{data.currentUser.username}</strong></h1>

@@ -10,6 +10,9 @@
     let inputContent: string = "";
     let shareTag: string = "";
 
+    let todoInput: HTMLInputElement;
+    let shareTagInput: HTMLInputElement;
+
     export let data;
 
     interface Todo {
@@ -28,9 +31,9 @@
             const todo: Todo = {
                 "id": loadedTodo.id,
                 "content": loadedTodo.content,
-                "creator": loadedTodo.creator.username
-            }
-            return todo;
+                "creator": loadedTodo.creator
+                }
+                return todo;
         });
 
         pocketbase.collection('todos').subscribe('*', function(updated) {
@@ -46,13 +49,13 @@
         });
     });
 
-    function createTodoEvent(createdTodo: Record) {
+    async function createTodoEvent(createdTodo: Record) {
         const todo: Todo = {
             "id": createdTodo.id,
             "content": createdTodo.content,
-            "creator": createdTodo.creator.username
+            "creator": createdTodo.creator
         }
-        todos = [...todos, todo]
+        todos = [...todos, todo];
     }
 
     function removeTodoEvent(id: string) {
@@ -64,6 +67,7 @@
     }
 
     async function createTodo(content: string) {
+        resetInputValue(todoInput);
         if (!IsTodoContentValid(content)) return;
 
         const pageId = data.pageId;
@@ -95,6 +99,7 @@
     }
 
     async function shareWithOtherUser(userId: string) {
+        resetInputValue(shareTagInput);
         const response = await fetch('../api/shoppinglists/todos/share', {
             method: 'POST',
             body: JSON.stringify({ userId, "pageId": data.pageId }),
@@ -118,20 +123,30 @@
                 break;
         }
     }
+
+    function resetInputValue(input: HTMLInputElement) {
+        input.value = "";
+    }
 </script>
 
 <Toaster />
-<h1>TODO</h1>
-<form on:submit|preventDefault={() => createTodo(inputContent)}>
-    <h3>Create a new TODO</h3>
-    <input type="text" placeholder="New todo" bind:value={inputContent}>
-    <button type="submit">Add</button>
-</form>
-<form on:submit|preventDefault={() => shareWithOtherUser(shareTag)}>
-    <h3>Share with other user</h3>
-    <input type="text" placeholder="username#id" bind:value={shareTag}>
-    <button type="submit">Share</button>
-</form>
+<section class="form-section">
+    <h1 class="page-title">{data.pageTitle}</h1>
+    <form on:submit|preventDefault={() => createTodo(inputContent)}>
+        <h3>Create a new TODO</h3>
+        <div class="input">
+            <input bind:this={todoInput} type="text" placeholder="new todo" bind:value={inputContent}>
+            <button type="submit">Add</button>
+        </div>
+    </form>
+    <form on:submit|preventDefault={() => shareWithOtherUser(shareTag)}>
+        <h3>Share with other user</h3>
+        <div class="input">
+            <input bind:this={shareTagInput} type="text" placeholder="id" bind:value={shareTag}>
+            <button type="submit">Share</button>
+        </div>
+    </form>
+</section>
 <section class="todo-section">
 {#if todos}
     {#each todos as todo (todo)}
@@ -154,6 +169,56 @@
 <style lang="scss">
     @import '$lib/scss/utils.scss';
     @import '$lib/scss/variables.scss';
+
+    :global(body) {
+        background-color: $section-background-c;
+    }
+
+    .form-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding-bottom: 50px;
+
+        .page-title {
+            margin: 30px;
+            font-size: 50px;
+        }
+
+        form:not(:first-child) {
+            margin-top: 20px;
+        }
+
+        .input {
+            display: flex;
+            width: 400px;
+            gap: 10px;
+            input {
+                width: 80%;
+                height: 40px;
+                padding: 2.5px 5px;
+                font-size: 15px;
+                border: 1px solid $input-border-c;
+                border-radius: 10px;
+                background-color: $input-background-c;
+            }
+
+            button {
+                float: left;
+                font-size: 20px;
+                padding: 2.5px 20px;
+                border: none;
+                border-radius: 5px;
+                background-color: $submit-button-c;
+                color: $auth-form-background-c;
+                transition: all 0.2s ease;
+            }
+            button:hover {
+                background-color: $submit-button-hover-c;
+            }
+        }
+    }
 
     .todo-section {
         display: flex;
